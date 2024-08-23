@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+load_test/conf.ini
+load_test/usr.txt
+load_test/results
+lt_venv
