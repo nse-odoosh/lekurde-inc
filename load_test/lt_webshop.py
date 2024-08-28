@@ -1,5 +1,6 @@
 import names
 import urllib.parse
+import configparser
 
 from bs4 import BeautifulSoup
 
@@ -7,9 +8,12 @@ from locust import task, run_single_user
 from locust import FastHttpUser
 
 
+config = configparser.ConfigParser()
+config.read("conf.ini")
+
 class WebShop(FastHttpUser):
     weight = 10
-    host = f"https://nse-odoosh-lekurde-inc.odoo.com/"
+    host = "https://" + config["odoo"]["url"] + '/'
     default_headers = {
         "accept-language": "en-US,en;q=0.9",
         "sec-ch-ua": '"Chromium";v="128", "Not;A=Brand";v="24", "Google Chrome";v="128"',
