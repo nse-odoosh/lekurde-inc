@@ -3,14 +3,15 @@ import configparser
 import logging
 
 from locust import task, between
-from OdooLocust import OdooTaskSet, OdooLocustUser, crm
-
+from OdooLocust import OdooLocustUser, crm
+from lt_webshop import WebShop
 
 config = configparser.ConfigParser()
 config.read("conf.ini")
 _logger = logging.getLogger()
 
-class DemoTest(OdooLocustUser.OdooLocustUser):
+class BackendSalesMen(OdooLocustUser.OdooLocustUser):
+    weight = 1
     wait_time = between(0.1, 1)
     database = config["odoo"]["db"]
     host = config["odoo"]["url"]
@@ -43,6 +44,5 @@ class DemoTest(OdooLocustUser.OdooLocustUser):
         crm.partner.ResPartner: 1,
         crm.lead.CrmLead: 2,
         crm.quotation.SaleOrder: 1,
-        # OdooTaskSet.OdooGenericTaskSet: 1,
-        # read_partners:1,
+        read_partners:1,
     }
