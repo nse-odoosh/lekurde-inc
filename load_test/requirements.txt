@@ -2,3 +2,4 @@ OdooLocust==1.6.7
 har2locust==0.9.3
 beautifulsoup4
 lxml
+names

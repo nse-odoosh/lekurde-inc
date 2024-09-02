@@ -30,7 +30,7 @@ class WebShop(FastHttpUser):
     @task
     def t(self):
         self.client.client.clientpool.close()
-        self.client.cookies.clear()
+        self.client.cookiejar.clear()
         order_id = False
         csrf_token = False
         access_token = False
