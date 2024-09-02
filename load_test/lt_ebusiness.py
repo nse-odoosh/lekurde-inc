@@ -1,8 +1,9 @@
+#!/bin/python3
 import random
 import configparser
 import logging
 
-from locust import task, between
+from locust import task, between, run_single_user
 from OdooLocust import OdooLocustUser, crm
 from lt_webshop import WebShop
 
@@ -11,7 +12,7 @@ config.read("conf.ini")
 _logger = logging.getLogger()
 
 class BackendSalesMen(OdooLocustUser.OdooLocustUser):
-    weight = 1
+    weight = int(config["weight"].get('saleman', 1))
     wait_time = between(0.1, 1)
     database = config["odoo"]["db"]
     host = config["odoo"]["url"]
@@ -46,3 +47,6 @@ class BackendSalesMen(OdooLocustUser.OdooLocustUser):
         crm.quotation.SaleOrder: 1,
         read_partners:1,
     }
+
+if __name__ == "__main__":
+    run_single_user(BackendSalesMen)

@@ -1,8 +1,11 @@
+#!/bin/python3
 import names
 import urllib.parse
 import configparser
 
 from bs4 import BeautifulSoup
+from time import sleep
+from random import randint
 
 from locust import task, run_single_user
 from locust import FastHttpUser
@@ -11,8 +14,11 @@ from locust import FastHttpUser
 config = configparser.ConfigParser()
 config.read("conf.ini")
 
+min_sleep = int(float(config.get('frontend', {}).get('min_sleep', 1)) * 1000)
+max_sleep = int(float(config.get('frontend', {}).get('max_sleep', 1)) * 1000)
+
 class WebShop(FastHttpUser):
-    weight = 10
+    weight = int(config["weight"].get('webshop', 10))
     host = "https://" + config["odoo"]["url"] + '/'
     default_headers = {
         "accept-language": "en-US,en;q=0.9",
@@ -20,6 +26,9 @@ class WebShop(FastHttpUser):
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": '"Linux"',
     }
+    order_id = False
+    csrf_token = False
+    access_token = False
 
     @task
     def t(self):
@@ -51,6 +60,8 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
+
         with self.client.request(
             "GET",
             "/shop/pt-996-product-template-name-996-998",
@@ -79,6 +90,8 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
+
         with self.rest(
             "POST",
             "/website_sale/get_combination_info",
@@ -107,34 +120,6 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
-        with self.rest(
-            "POST",
-            "/website_sale/get_combination_info",
-            headers={
-                "accept": "*/*",
-                "accept-encoding": "gzip, deflate, br, zstd",
-                "origin": f"{self.host}",
-                "priority": "u=1, i",
-                "referer": f"{self.host}shop/pt-996-product-template-name-996-998",
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-origin",
-                "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            json={
-                "id": 1,
-                "jsonrpc": "2.0",
-                "method": "call",
-                "params": {
-                    "product_template_id": 998,
-                    "product_id": 33912,
-                    "combination": [12859, 12876, 12864, 12871],
-                    "add_qty": 1,
-                    "parent_combination": [],
-                },
-            },
-        ) as resp:
-            pass
         with self.client.request(
             "GET",
             "/web/image/website/1/favicon?unique=a8b59ee",
@@ -145,6 +130,8 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
+
         with self.rest(
             "POST",
             "/website_sale/get_combination_info",
@@ -173,6 +160,8 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
+
         with self.rest(
             "POST",
             "/website_sale/get_combination_info",
@@ -211,6 +200,8 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
+
         with self.rest(
             "POST",
             "/website_sale/get_combination_info",
@@ -239,34 +230,6 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
-        with self.rest(
-            "POST",
-            "/website_sale/get_combination_info",
-            headers={
-                "accept": "*/*",
-                "accept-encoding": "gzip, deflate, br, zstd",
-                "origin": f"{self.host}",
-                "priority": "u=1, i",
-                "referer": f"{self.host}shop/pt-996-product-template-name-996-998",
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-origin",
-                "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            json={
-                "id": 5,
-                "jsonrpc": "2.0",
-                "method": "call",
-                "params": {
-                    "product_template_id": 998,
-                    "product_id": 33916,
-                    "combination": [12859, 12876, 12864, 12874],
-                    "add_qty": 1,
-                    "parent_combination": [],
-                },
-            },
-        ) as resp:
-            pass
         with self.client.request(
             "GET",
             "/web/image/website/1/favicon?unique=a8b59ee",
@@ -277,6 +240,8 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
+
         with self.rest(
             "POST",
             "/website_sale/get_combination_info",
@@ -305,34 +270,6 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
-        with self.rest(
-            "POST",
-            "/website_sale/get_combination_info",
-            headers={
-                "accept": "*/*",
-                "accept-encoding": "gzip, deflate, br, zstd",
-                "origin": f"{self.host}",
-                "priority": "u=1, i",
-                "referer": f"{self.host}shop/pt-996-product-template-name-996-998",
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-origin",
-                "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            json={
-                "id": 7,
-                "jsonrpc": "2.0",
-                "method": "call",
-                "params": {
-                    "product_template_id": 998,
-                    "product_id": 33918,
-                    "combination": [12862, 12876, 12864, 12874],
-                    "add_qty": 1,
-                    "parent_combination": [],
-                },
-            },
-        ) as resp:
-            pass
         with self.client.request(
             "GET",
             "/web/image/website/1/favicon?unique=a8b59ee",
@@ -343,6 +280,8 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
+
         with self.rest(
             "POST",
             "/website_sale/get_combination_info",
@@ -410,6 +349,8 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
+
         with self.rest(
             "POST",
             "/shop/cart/update_json",
@@ -440,6 +381,8 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
+
         with self.client.request(
             "GET",
             "/shop/cart",
@@ -457,7 +400,9 @@ class WebShop(FastHttpUser):
             },
             catch_response=True,
         ) as resp:
-            pass
+            soup = BeautifulSoup(resp.text, 'lxml')
+            order_id = soup.select_one("sup[data-order-id]")["data-order-id"]
+            
         with self.client.request(
             "GET",
             "/web/image/website/1/favicon?unique=a8b59ee",
@@ -468,6 +413,8 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
+
         with self.client.request(
             "GET",
             "/shop/checkout?express=1",
@@ -486,6 +433,8 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
+
         with self.client.request(
             "GET",
             "/shop/address",
@@ -538,6 +487,7 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
 
         first_name = urllib.parse.quote_plus(names.get_first_name())
         last_name = urllib.parse.quote_plus(names.get_last_name())
@@ -566,6 +516,8 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
+
         with self.client.request(
             "GET",
             "/shop/confirm_order",
@@ -585,6 +537,8 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
+
         with self.client.request(
             "GET",
             "/shop/payment",
@@ -603,7 +557,9 @@ class WebShop(FastHttpUser):
             },
             catch_response=True,
         ) as resp:
-            pass
+            soup = BeautifulSoup(resp.text, 'lxml')
+            access_token = soup.select_one("form[data-access-token]")["data-access-token"]
+
         with self.client.request(
             "GET",
             "/web/image/website/1/favicon?unique=a8b59ee",
@@ -614,6 +570,8 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
+
         with self.rest(
             "POST",
             "/shop/access_point/get",
@@ -631,6 +589,8 @@ class WebShop(FastHttpUser):
             json={"id": 0, "jsonrpc": "2.0", "method": "call", "params": {}},
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
+
         with self.rest(
             "POST",
             "/shop/update_carrier",
@@ -675,9 +635,11 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
+
         with self.rest(
             "POST",
-            "/shop/payment/transaction/46751",
+            f"/shop/payment/transaction/{order_id}",
             headers={
                 "accept": "*/*",
                 "accept-encoding": "gzip, deflate, br, zstd",
@@ -702,8 +664,8 @@ class WebShop(FastHttpUser):
                     "tokenization_requested": False,
                     "landing_route": "/shop/payment/validate",
                     "is_validation": False,
-                    "access_token": "5238da0c-a3ac-4b01-b5e0-0d1e0375f331",
-                    "csrf_token": "e9b7771658ada97578102caa0e4e4bbcc5e72eceo1756300554",
+                    "access_token": access_token,
+                    "csrf_token": csrf_token,
                 },
             },
         ) as resp:
@@ -778,11 +740,13 @@ class WebShop(FastHttpUser):
                 "jsonrpc": "2.0",
                 "method": "call",
                 "params": {
-                    "csrf_token": "f88d7d718abe5eeda60b4f35dc42a27ab92c6bf3o1756300559"
+                    "csrf_token": csrf_token
                 },
             },
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
+
         with self.client.request(
             "GET",
             "/shop/payment/validate",
@@ -800,6 +764,8 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
+        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        
         with self.client.request(
             "GET",
             "/shop/confirmation",
