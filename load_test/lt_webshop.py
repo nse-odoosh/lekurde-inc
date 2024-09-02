@@ -14,8 +14,8 @@ from locust import FastHttpUser
 config = configparser.ConfigParser()
 config.read("conf.ini")
 
-min_sleep = int(float(config.get('frontend', {}).get('min_sleep', 1)) * 1000)
-max_sleep = int(float(config.get('frontend', {}).get('max_sleep', 1)) * 1000)
+min_sleep = int(float(config['frontend']['min_sleep'] or 1) * 1000)
+max_sleep = int(float(config['frontend']['max_sleep'] or 1) * 1000)
 
 class WebShop(FastHttpUser):
     weight = int(config["weight"].get('webshop', 10))
@@ -26,12 +26,14 @@ class WebShop(FastHttpUser):
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": '"Linux"',
     }
-    order_id = False
-    csrf_token = False
-    access_token = False
 
     @task
     def t(self):
+        self.client.client.clientpool.close() 
+        order_id = False
+        csrf_token = False
+        access_token = False
+
         with self.client.request(
             "GET",
             "/shop",
@@ -46,16 +48,6 @@ class WebShop(FastHttpUser):
                 "sec-fetch-user": "?1",
                 "upgrade-insecure-requests": "1",
                 "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            catch_response=True,
-        ) as resp:
-            pass
-        with self.client.request(
-            "GET",
-            "/web/image/website/1/favicon?unique=a8b59ee",
-            headers={
-                "Referer": f"{self.host}shop",
-                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
             },
             catch_response=True,
         ) as resp:
@@ -76,16 +68,6 @@ class WebShop(FastHttpUser):
                 "sec-fetch-user": "?1",
                 "upgrade-insecure-requests": "1",
                 "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            catch_response=True,
-        ) as resp:
-            pass
-        with self.client.request(
-            "GET",
-            "/web/image/website/1/favicon?unique=a8b59ee",
-            headers={
-                "Referer": f"{self.host}shop/pt-996-product-template-name-996-998",
-                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
             },
             catch_response=True,
         ) as resp:
@@ -118,16 +100,6 @@ class WebShop(FastHttpUser):
                     "parent_combination": [],
                 },
             },
-        ) as resp:
-            pass
-        with self.client.request(
-            "GET",
-            "/web/image/website/1/favicon?unique=a8b59ee",
-            headers={
-                "Referer": f"{self.host}shop/pt-996-product-template-name-996-998",
-                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            catch_response=True,
         ) as resp:
             pass
         sleep(randint(min_sleep, max_sleep) / 1000.0)
@@ -190,16 +162,6 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
-        with self.client.request(
-            "GET",
-            "/web/image/website/1/favicon?unique=a8b59ee",
-            headers={
-                "Referer": f"{self.host}shop/pt-996-product-template-name-996-998",
-                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            catch_response=True,
-        ) as resp:
-            pass
         sleep(randint(min_sleep, max_sleep) / 1000.0)
 
         with self.rest(
@@ -230,16 +192,6 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
-        with self.client.request(
-            "GET",
-            "/web/image/website/1/favicon?unique=a8b59ee",
-            headers={
-                "Referer": f"{self.host}shop/pt-996-product-template-name-996-998",
-                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            catch_response=True,
-        ) as resp:
-            pass
         sleep(randint(min_sleep, max_sleep) / 1000.0)
 
         with self.rest(
@@ -268,16 +220,6 @@ class WebShop(FastHttpUser):
                     "parent_combination": [],
                 },
             },
-        ) as resp:
-            pass
-        with self.client.request(
-            "GET",
-            "/web/image/website/1/favicon?unique=a8b59ee",
-            headers={
-                "Referer": f"{self.host}shop/pt-996-product-template-name-996-998",
-                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            catch_response=True,
         ) as resp:
             pass
         sleep(randint(min_sleep, max_sleep) / 1000.0)
@@ -403,16 +345,6 @@ class WebShop(FastHttpUser):
             soup = BeautifulSoup(resp.text, 'lxml')
             order_id = soup.select_one("sup[data-order-id]")["data-order-id"]
             
-        with self.client.request(
-            "GET",
-            "/web/image/website/1/favicon?unique=a8b59ee",
-            headers={
-                "Referer": f"{self.host}shop/cart",
-                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            catch_response=True,
-        ) as resp:
-            pass
         sleep(randint(min_sleep, max_sleep) / 1000.0)
 
         with self.client.request(
@@ -455,16 +387,6 @@ class WebShop(FastHttpUser):
             soup = BeautifulSoup(resp.text, 'lxml')
             csrf_token = soup.select_one("input[name='csrf_token']")["value"]
 
-        with self.client.request(
-            "GET",
-            "/web/image/website/1/favicon?unique=a8b59ee",
-            headers={
-                "Referer": f"{self.host}shop/address",
-                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            catch_response=True,
-        ) as resp:
-            pass
         with self.rest(
             "POST",
             "/shop/country_infos/20",
@@ -560,16 +482,6 @@ class WebShop(FastHttpUser):
             soup = BeautifulSoup(resp.text, 'lxml')
             access_token = soup.select_one("form[data-access-token]")["data-access-token"]
 
-        with self.client.request(
-            "GET",
-            "/web/image/website/1/favicon?unique=a8b59ee",
-            headers={
-                "Referer": f"{self.host}shop/payment",
-                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            catch_response=True,
-        ) as resp:
-            pass
         sleep(randint(min_sleep, max_sleep) / 1000.0)
 
         with self.rest(
@@ -711,16 +623,6 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
-        with self.client.request(
-            "GET",
-            "/web/image/website/1/favicon?unique=a8b59ee",
-            headers={
-                "Referer": f"{self.host}payment/status",
-                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            catch_response=True,
-        ) as resp:
-            pass
         with self.rest(
             "POST",
             "/payment/status/poll",
@@ -779,16 +681,6 @@ class WebShop(FastHttpUser):
                 "sec-fetch-site": "same-origin",
                 "upgrade-insecure-requests": "1",
                 "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            catch_response=True,
-        ) as resp:
-            pass
-        with self.client.request(
-            "GET",
-            "/web/image/website/1/favicon?unique=a8b59ee",
-            headers={
-                "Referer": f"{self.host}shop/confirmation",
-                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
             },
             catch_response=True,
         ) as resp:
