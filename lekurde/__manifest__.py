@@ -18,7 +18,7 @@ Long description of module's purpose
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['crm', 'website_sale', 'payment_custom'],
+    'depends': ['crm', 'sale', 'website_sale', 'payment_custom'],
 
     # always loaded
     'data': [
