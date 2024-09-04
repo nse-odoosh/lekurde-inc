@@ -34,6 +34,7 @@ class WebShop(FastHttpUser):
         order_id = False
         csrf_token = False
         access_token = False
+        user_speed = randint(min_sleep, max_sleep) / 1000.0
 
         with self.client.request(
             "GET",
@@ -53,7 +54,7 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
 
         with self.client.request(
             "GET",
@@ -73,7 +74,7 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
 
         with self.rest(
             "POST",
@@ -103,7 +104,7 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
 
         with self.rest(
             "POST",
@@ -133,7 +134,7 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
 
         with self.rest(
             "POST",
@@ -163,7 +164,7 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
 
         with self.rest(
             "POST",
@@ -193,7 +194,7 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
 
         with self.rest(
             "POST",
@@ -223,7 +224,7 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
 
         with self.rest(
             "POST",
@@ -292,7 +293,7 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
 
         with self.rest(
             "POST",
@@ -324,7 +325,7 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
 
         with self.client.request(
             "GET",
@@ -346,7 +347,7 @@ class WebShop(FastHttpUser):
             soup = BeautifulSoup(resp.text, 'lxml')
             order_id = soup.select_one("sup[data-order-id]")["data-order-id"]
             
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
 
         with self.client.request(
             "GET",
@@ -366,7 +367,7 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
 
         with self.client.request(
             "GET",
@@ -410,7 +411,7 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
 
         first_name = urllib.parse.quote_plus(names.get_first_name())
         last_name = urllib.parse.quote_plus(names.get_last_name())
@@ -439,7 +440,7 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
 
         with self.client.request(
             "GET",
@@ -460,7 +461,7 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
 
         with self.client.request(
             "GET",
@@ -483,7 +484,7 @@ class WebShop(FastHttpUser):
             soup = BeautifulSoup(resp.text, 'lxml')
             access_token = soup.select_one("form[data-access-token]")["data-access-token"]
 
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
 
         with self.rest(
             "POST",
@@ -502,7 +503,7 @@ class WebShop(FastHttpUser):
             json={"id": 0, "jsonrpc": "2.0", "method": "call", "params": {}},
         ) as resp:
             pass
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
 
         with self.rest(
             "POST",
@@ -548,7 +549,7 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
 
         with self.rest(
             "POST",
@@ -648,7 +649,7 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
 
         with self.client.request(
             "GET",
@@ -667,7 +668,7 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
-        sleep(randint(min_sleep, max_sleep) / 1000.0)
+        sleep(user_speed)
         
         with self.client.request(
             "GET",
