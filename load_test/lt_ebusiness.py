@@ -4,13 +4,82 @@ import configparser
 import logging
 
 from locust import task, between, run_single_user
-from OdooLocust import OdooLocustUser, crm
+from OdooLocust import OdooLocustUser, crm, OdooTaskSet
 from lt_webshop import WebShop
 
 config = configparser.ConfigParser()
 config.read("conf.ini")
 _logger = logging.getLogger()
 
+
+class Delivering(crm.quotation.SaleOrder):
+    @task(5)
+    def confirm_quotation(self):
+        found = False
+        retry=0
+        while (not found and retry<5):
+            retry += 1
+            search_domain = [['state', '=', 'draft']]
+            other_domain =  self._get_search_domain()
+            if other_domain:
+                search_domain = ['&'] + search_domain + other_domain
+            
+            nbr_records = self.model.search_count(search_domain)
+            offset = random.randint(0, nbr_records % 80) if nbr_records > 80 else 0
+
+            ids = self.model.search(search_domain, limit=80, offset=offset)
+            if ids:
+                found = True
+                self.random_id = random.choice(ids)
+                self.model.action_confirm(self.random_id)
+
+    @task(5)
+    def deliver_saleorder(self):
+        found = False
+        retry=0
+        while (not found and retry<5):
+            retry += 1
+            domain = [[ "state", "not in", [ "draft", "sent", "cancel" ]], ['company_id', '=', 1]]
+            ids = self.model.search(domain, limit=80)
+            if ids:
+                found = True
+                self.random_id = random.choice(ids)
+                saleorderline_model = self.client.get_model('sale.order.line')
+                sol_ids = saleorderline_model.search_read([ ['order_id', '=', self.random_id] ], ['id', 'product_uom_qty'])
+                for sol in sol_ids:
+                    saleorderline_model.write(sol['id'], {'qty_delivered': sol['product_uom_qty']})
+                payment_ctx = {
+                    "active_model": "sale.order",
+                    "active_ids": [self.random_id],
+                    "active_id": self.random_id,
+                }
+                pay_model = self.client.get_model('sale.advance.payment.inv')
+                payment_id = pay_model.create({'advance_payment_method': 'delivered'}, context=payment_ctx)
+                res = pay_model.create_invoices(payment_id)
+                invoice_id = res['res_id']
+                invoice_model = self.client.get_model('account.move')
+                invoice_model.action_post(invoice_id)
+
+
+class InvoicePayment(OdooTaskSet.OdooGenericTaskSet):
+    model_name='account.move'
+
+    @task(5)
+    def register_payment(self):
+        domain = [["move_type", "=", "out_invoice"]]
+        nbr_records = self.model.search_count(domain)
+        offset = random.randint(0, nbr_records % 80) if nbr_records > 80 else 0
+        inv_ids = self.model.search(domain, offset=offset, limit=80)
+        if inv_ids:
+            self.random_id = random.choice(inv_ids)
+            res = self.model.action_register_payment(self.random_id)
+            pay_model_name = res['res_model']
+            pay_ctx = res['context']
+            pay_model = self.client.get_model(pay_model_name)
+            pay_id = pay_model.create({}, context=pay_ctx)
+            pay_model.action_create_payments(pay_id)
+
+                
 class BackendSalesMen(OdooLocustUser.OdooLocustUser):
     weight = int(config["weight"].get('saleman', 1))
     wait_time = between(0.1, 1)
@@ -35,17 +104,11 @@ class BackendSalesMen(OdooLocustUser.OdooLocustUser):
         _logger.info(f"Load testing with user {self.login}")
         return super().on_start()
 
-    @task(10)
-    def read_partners(self):
-        cust_model = self.client.get_model('res.partner')
-        cust_ids = cust_model.search([], limit=80)
-        prtns = cust_model.read(cust_ids, ['name'])
-
     tasks = {
         crm.partner.ResPartner: 1,
         crm.lead.CrmLead: 2,
-        crm.quotation.SaleOrder: 1,
-        read_partners:1,
+        Delivering: 4,
+        InvoicePayment:1,
     }
 
 if __name__ == "__main__":
