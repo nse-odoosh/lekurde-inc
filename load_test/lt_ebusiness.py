@@ -92,11 +92,14 @@ class BackendSalesMen(OdooLocustUser.OdooLocustUser):
     _user_list = []
 
     def __init__(self, *args, **kwargs):
+        self._fill_users_from_usr_file()
+        return super().__init__(*args, **kwargs)
+    
+    def _fill_users_from_usr_file(self):
         with open('usr.txt') as usr_file:
             for line in usr_file.readlines():
                 self._user_list.append(line.strip('\n').split(':'))
-        return super().__init__(*args, **kwargs)
-    
+
     def on_start(self):
         usr = random.choice(self._user_list)
         self.login = usr[0]
