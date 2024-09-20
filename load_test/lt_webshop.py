@@ -5,7 +5,7 @@ import configparser
 
 from bs4 import BeautifulSoup
 from time import sleep
-from random import randint
+from random import randint, choice
 
 from locust import task, run_single_user
 from locust import FastHttpUser
@@ -31,10 +31,16 @@ class WebShop(FastHttpUser):
     def t(self):
         self.client.client.clientpool.close()
         self.client.cookiejar.clear()
+        product = {
+            'url': '',
+            'template_id': -1,
+            'id': 1,
+        }
         order_id = False
         csrf_token = False
         access_token = False
         user_speed = randint(min_sleep, max_sleep) / 1000.0
+        user_speed = 2
 
         with self.client.request(
             "GET",
@@ -58,7 +64,32 @@ class WebShop(FastHttpUser):
 
         with self.client.request(
             "GET",
-            "/shop/pt-996-product-template-name-996-998",
+            f"/shop/page/{randint(1, 101)}",
+            headers={
+                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                "accept-encoding": "gzip, deflate, br, zstd",
+                "priority": "u=0, i",
+                "referer": f"{self.host}",
+                "sec-fetch-dest": "document",
+                "sec-fetch-mode": "navigate",
+                "sec-fetch-site": "same-origin",
+                "sec-fetch-user": "?1",
+                "upgrade-insecure-requests": "1",
+                "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+            },
+            catch_response=True,
+        ) as resp:
+            soup = BeautifulSoup(resp.text, 'lxml')
+            links = []
+            for link in soup.select("a[itemprop]"):
+                if 'oe_product_image_link' in link['class']:
+                    links.append(link['href'])
+            product['url'] = choice(links)
+        sleep(user_speed)
+
+        with self.client.request(
+            "GET",
+            product['url'],
             headers={
                 "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
                 "accept-encoding": "gzip, deflate, br, zstd",
@@ -73,227 +104,41 @@ class WebShop(FastHttpUser):
             },
             catch_response=True,
         ) as resp:
-            pass
+            soup = BeautifulSoup(resp.text, 'lxml')
+            product['id'] = int(soup.select_one("input[name='product_id']")['value'])
+            product['template_id'] = int(soup.select_one("input[name='product_template_id']")['value'])
         sleep(user_speed)
 
-        with self.rest(
-            "POST",
-            "/website_sale/get_combination_info",
-            headers={
-                "accept": "*/*",
-                "accept-encoding": "gzip, deflate, br, zstd",
-                "origin": f"{self.host}",
-                "priority": "u=1, i",
-                "referer": f"{self.host}shop/pt-996-product-template-name-996-998",
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-origin",
-                "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            json={
-                "id": 0,
-                "jsonrpc": "2.0",
-                "method": "call",
-                "params": {
-                    "product_template_id": 998,
-                    "product_id": 33912,
-                    "combination": [12859, 12876, 12864, 12871],
-                    "add_qty": 1,
-                    "parent_combination": [],
+        for i in range(0, randint(0,6)):
+            with self.rest(
+                "POST",
+                "/website_sale/get_combination_info",
+                headers={
+                    "accept": "*/*",
+                    "accept-encoding": "gzip, deflate, br, zstd",
+                    "origin": f"{self.host}",
+                    "priority": "u=1, i",
+                    "referer": f"{self.host}{product['url']}",
+                    "sec-fetch-dest": "empty",
+                    "sec-fetch-mode": "cors",
+                    "sec-fetch-site": "same-origin",
+                    "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
                 },
-            },
-        ) as resp:
-            pass
-        sleep(user_speed)
-
-        with self.rest(
-            "POST",
-            "/website_sale/get_combination_info",
-            headers={
-                "accept": "*/*",
-                "accept-encoding": "gzip, deflate, br, zstd",
-                "origin": f"{self.host}",
-                "priority": "u=1, i",
-                "referer": f"{self.host}shop/pt-996-product-template-name-996-998",
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-origin",
-                "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            json={
-                "id": 2,
-                "jsonrpc": "2.0",
-                "method": "call",
-                "params": {
-                    "product_template_id": 998,
-                    "product_id": 33912,
-                    "combination": [12859, 12876, 12864, 12873],
-                    "add_qty": 1,
-                    "parent_combination": [],
+                json={
+                    "id": 0,
+                    "jsonrpc": "2.0",
+                    "method": "call",
+                    "params": {
+                        "product_template_id": product['template_id'],
+                        "product_id": product['id'],
+                        "combination": [12859, 12876, 12864, 12871],
+                        "add_qty": 1,
+                        "parent_combination": [],
+                    },
                 },
-            },
-        ) as resp:
-            pass
-        sleep(user_speed)
-
-        with self.rest(
-            "POST",
-            "/website_sale/get_combination_info",
-            headers={
-                "accept": "*/*",
-                "accept-encoding": "gzip, deflate, br, zstd",
-                "origin": f"{self.host}",
-                "priority": "u=1, i",
-                "referer": f"{self.host}shop/pt-996-product-template-name-996-998",
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-origin",
-                "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            json={
-                "id": 3,
-                "jsonrpc": "2.0",
-                "method": "call",
-                "params": {
-                    "product_template_id": 998,
-                    "product_id": 33912,
-                    "combination": [12859, 12876, 12864, 12873],
-                    "add_qty": 1,
-                    "parent_combination": [],
-                },
-            },
-        ) as resp:
-            pass
-        sleep(user_speed)
-
-        with self.rest(
-            "POST",
-            "/website_sale/get_combination_info",
-            headers={
-                "accept": "*/*",
-                "accept-encoding": "gzip, deflate, br, zstd",
-                "origin": f"{self.host}",
-                "priority": "u=1, i",
-                "referer": f"{self.host}shop/pt-996-product-template-name-996-998",
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-origin",
-                "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            json={
-                "id": 4,
-                "jsonrpc": "2.0",
-                "method": "call",
-                "params": {
-                    "product_template_id": 998,
-                    "product_id": 33916,
-                    "combination": [12859, 12876, 12864, 12874],
-                    "add_qty": 1,
-                    "parent_combination": [],
-                },
-            },
-        ) as resp:
-            pass
-        sleep(user_speed)
-
-        with self.rest(
-            "POST",
-            "/website_sale/get_combination_info",
-            headers={
-                "accept": "*/*",
-                "accept-encoding": "gzip, deflate, br, zstd",
-                "origin": f"{self.host}",
-                "priority": "u=1, i",
-                "referer": f"{self.host}shop/pt-996-product-template-name-996-998",
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-origin",
-                "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            json={
-                "id": 6,
-                "jsonrpc": "2.0",
-                "method": "call",
-                "params": {
-                    "product_template_id": 998,
-                    "product_id": 33918,
-                    "combination": [12862, 12876, 12864, 12874],
-                    "add_qty": 1,
-                    "parent_combination": [],
-                },
-            },
-        ) as resp:
-            pass
-        sleep(user_speed)
-
-        with self.rest(
-            "POST",
-            "/website_sale/get_combination_info",
-            headers={
-                "accept": "*/*",
-                "accept-encoding": "gzip, deflate, br, zstd",
-                "origin": f"{self.host}",
-                "priority": "u=1, i",
-                "referer": f"{self.host}shop/pt-996-product-template-name-996-998",
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-origin",
-                "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            json={
-                "id": 8,
-                "jsonrpc": "2.0",
-                "method": "call",
-                "params": {
-                    "product_template_id": 998,
-                    "product_id": 33948,
-                    "combination": [12862, 12876, 12864, 12874],
-                    "add_qty": 1,
-                    "parent_combination": [],
-                },
-            },
-        ) as resp:
-            pass
-        with self.rest(
-            "POST",
-            "/sale_product_configurator/show_advanced_configurator",
-            headers={
-                "accept": "*/*",
-                "accept-encoding": "gzip, deflate, br, zstd",
-                "origin": f"{self.host}",
-                "priority": "u=1, i",
-                "referer": f"{self.host}shop/pt-996-product-template-name-996-998",
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-origin",
-                "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            json={
-                "id": 9,
-                "jsonrpc": "2.0",
-                "method": "call",
-                "params": {
-                    "product_id": 33948,
-                    "variant_values": [12862, 12876, 12864, 12874],
-                    "product_custom_attribute_values": [],
-                    "pricelist_id": False,
-                    "add_qty": 1,
-                    "force_dialog": False,
-                    "no_attribute": [
-                        {
-                            "custom_product_template_attribute_value_id": 12864,
-                            "attribute_value_name": "PAV_9542",
-                            "value": "12864",
-                            "attribute_name": "PA_73",
-                        }
-                    ],
-                    "custom_attribute": [],
-                    "context": {"quantity": 1, "website_id": 1, "lang": "en_US"},
-                },
-            },
-        ) as resp:
-            pass
-        sleep(user_speed)
+            ) as resp:
+                pass
+            sleep(user_speed)
 
         with self.rest(
             "POST",
@@ -303,7 +148,7 @@ class WebShop(FastHttpUser):
                 "accept-encoding": "gzip, deflate, br, zstd",
                 "origin": f"{self.host}",
                 "priority": "u=1, i",
-                "referer": f"{self.host}shop/pt-996-product-template-name-996-998",
+                "referer": f"{self.host}{product['url']}",
                 "sec-fetch-dest": "empty",
                 "sec-fetch-mode": "cors",
                 "sec-fetch-site": "same-origin",
@@ -314,10 +159,11 @@ class WebShop(FastHttpUser):
                 "jsonrpc": "2.0",
                 "method": "call",
                 "params": {
-                    "product_id": 33948,
+                    "product_id": product['id'],
+                    "product_template_id": product['template_id'],
                     "product_custom_attribute_values": "[]",
-                    "variant_values": [12862, 12876, 12864, 12874],
-                    "no_variant_attribute_values": '[{"custom_product_template_attribute_value_id":12864,"attribute_value_name":"PAV_9542","value":"12864","attribute_name":"PA_73"}]',
+                    #"variant_values": [12862, 12876, 12864, 12874],
+                    #"no_variant_attribute_values": '[{"custom_product_template_attribute_value_id":12864,"attribute_value_name":"PAV_9542","value":"12864","attribute_name":"PA_73"}]',
                     "add_qty": 1,
                     "display": False,
                     "force_create": True,
@@ -334,7 +180,7 @@ class WebShop(FastHttpUser):
                 "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
                 "accept-encoding": "gzip, deflate, br, zstd",
                 "priority": "u=0, i",
-                "referer": f"{self.host}shop/pt-996-product-template-name-996-998",
+                "referer": f"{self.host}{product['url']}",
                 "sec-fetch-dest": "document",
                 "sec-fetch-mode": "navigate",
                 "sec-fetch-site": "same-origin",
@@ -346,6 +192,7 @@ class WebShop(FastHttpUser):
         ) as resp:
             soup = BeautifulSoup(resp.text, 'lxml')
             order_id = soup.select_one("sup[data-order-id]")["data-order-id"]
+            print(order_id)
             
         sleep(user_speed)
 
@@ -391,7 +238,7 @@ class WebShop(FastHttpUser):
 
         with self.rest(
             "POST",
-            "/shop/country_infos/20",
+            "/shop/country_info/20",
             headers={
                 "accept": "*/*",
                 "accept-encoding": "gzip, deflate, br, zstd",
@@ -407,7 +254,7 @@ class WebShop(FastHttpUser):
                 "id": 0,
                 "jsonrpc": "2.0",
                 "method": "call",
-                "params": {"mode": "billing"},
+                "params": {"address_type": "billing"},
             },
         ) as resp:
             pass
@@ -420,7 +267,7 @@ class WebShop(FastHttpUser):
 
         with self.client.request(
             "POST",
-            "/shop/address",
+            "/shop/address/submit",
             headers={
                 "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
                 "accept-encoding": "gzip, deflate, br, zstd",
@@ -436,12 +283,10 @@ class WebShop(FastHttpUser):
                 "upgrade-insecure-requests": "1",
                 "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
             },
-            data=f"name={name}&email={first_name}%40{last_name}.local&phone=gfdgsfdgs&company_name={company_name}&vat=gfsdgd&street=gsdggfgfgfsd&street2=gffgfgfds&zip=gfdsgff&city=gfdsdgfs&country_id=20&state_id=&use_same=1&csrf_token={csrf_token}&submitted=1&partner_id=-1&mode=billing&callback=&field_required=name%2Cstreet",
+            data=f"name={name}&email={first_name}%40{last_name}.local&phone=gfdgsfdgs&company_name={company_name}&vat=&street=gsdggfgfgfsd&street2=gffgfgfds&zip=gfdsgff&city=gfdsdgfs&country_id=20&state_id=&use_same=1&csrf_token={csrf_token}&submitted=1&partner_id=-1&mode=billing&callback=&field_required=name%2Cstreet",
             catch_response=True,
         ) as resp:
             pass
-        sleep(user_speed)
-
         with self.client.request(
             "GET",
             "/shop/confirm_order",
@@ -461,8 +306,6 @@ class WebShop(FastHttpUser):
             catch_response=True,
         ) as resp:
             pass
-        sleep(user_speed)
-
         with self.client.request(
             "GET",
             "/shop/payment",
@@ -481,74 +324,10 @@ class WebShop(FastHttpUser):
             },
             catch_response=True,
         ) as resp:
+            with open('res.txt', 'wt') as f:
+                f.write(resp.text)
             soup = BeautifulSoup(resp.text, 'lxml')
             access_token = soup.select_one("form[data-access-token]")["data-access-token"]
-
-        sleep(user_speed)
-
-        with self.rest(
-            "POST",
-            "/shop/access_point/get",
-            headers={
-                "accept": "*/*",
-                "accept-encoding": "gzip, deflate, br, zstd",
-                "origin": f"{self.host}",
-                "priority": "u=1, i",
-                "referer": f"{self.host}shop/payment",
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-origin",
-                "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            json={"id": 0, "jsonrpc": "2.0", "method": "call", "params": {}},
-        ) as resp:
-            pass
-        sleep(user_speed)
-
-        with self.rest(
-            "POST",
-            "/shop/update_carrier",
-            headers={
-                "accept": "*/*",
-                "accept-encoding": "gzip, deflate, br, zstd",
-                "origin": f"{self.host}",
-                "priority": "u=1, i",
-                "referer": f"{self.host}shop/payment",
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-origin",
-                "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            json={
-                "id": 1,
-                "jsonrpc": "2.0",
-                "method": "call",
-                "params": {"carrier_id": "1"},
-            },
-        ) as resp:
-            pass
-        with self.rest(
-            "POST",
-            "/shop/carrier_rate_shipment",
-            headers={
-                "accept": "*/*",
-                "accept-encoding": "gzip, deflate, br, zstd",
-                "origin": f"{self.host}",
-                "priority": "u=1, i",
-                "referer": f"{self.host}shop/payment",
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-origin",
-                "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            json={
-                "id": 2,
-                "jsonrpc": "2.0",
-                "method": "call",
-                "params": {"carrier_id": "1"},
-            },
-        ) as resp:
-            pass
         sleep(user_speed)
 
         with self.rest(
@@ -584,28 +363,28 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
-        with self.client.request(
-            "POST",
-            "/payment/custom/process",
-            headers={
-                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-                "accept-encoding": "gzip, deflate, br, zstd",
-                "cache-control": "max-age=0",
-                "content-type": "application/x-www-form-urlencoded",
-                "origin": f"{self.host}",
-                "priority": "u=0, i",
-                "referer": f"{self.host}shop/payment",
-                "sec-fetch-dest": "document",
-                "sec-fetch-mode": "navigate",
-                "sec-fetch-site": "same-origin",
-                "sec-fetch-user": "?1",
-                "upgrade-insecure-requests": "1",
-                "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            },
-            data="reference=S46778",
-            catch_response=True,
-        ) as resp:
-            pass
+        # with self.client.request(
+        #     "POST",
+        #     "/payment/custom/process",
+        #     headers={
+        #         "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        #         "accept-encoding": "gzip, deflate, br, zstd",
+        #         "cache-control": "max-age=0",
+        #         "content-type": "application/x-www-form-urlencoded",
+        #         "origin": f"{self.host}",
+        #         "priority": "u=0, i",
+        #         "referer": f"{self.host}shop/payment",
+        #         "sec-fetch-dest": "document",
+        #         "sec-fetch-mode": "navigate",
+        #         "sec-fetch-site": "same-origin",
+        #         "sec-fetch-user": "?1",
+        #         "upgrade-insecure-requests": "1",
+        #         "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+        #     },
+        #     # data="reference=S46778",
+        #     catch_response=True,
+        # ) as resp:
+        #     pass
         with self.client.request(
             "GET",
             "/payment/status",

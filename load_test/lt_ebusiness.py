@@ -66,7 +66,7 @@ class InvoicePayment(OdooTaskSet.OdooGenericTaskSet):
 
     @task(5)
     def register_payment(self):
-        domain = [["move_type", "=", "out_invoice"]]
+        domain = [["move_type", "=", "out_invoice"], ['payment_state', '=', 'not_paid']]
         nbr_records = self.model.search_count(domain)
         offset = random.randint(0, nbr_records % 80) if nbr_records > 80 else 0
         inv_ids = self.model.search(domain, offset=offset, limit=80)
