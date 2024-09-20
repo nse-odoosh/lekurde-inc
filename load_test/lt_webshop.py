@@ -27,6 +27,15 @@ class WebShop(FastHttpUser):
         "sec-ch-ua-platform": '"Linux"',
     }
 
+    def __init__(self, *args, **kwargs):
+        with open('products.txt', 'r') as f:
+            self.products = {int(p.split(' ')[0]): p.split(' ')[3] for p in f.readlines()}
+        with open('products.txt', 'r') as f:
+            self.products_ids = {int(p.split(' ')[0]): p.split(' ')[1] for p in f.readlines()}
+        with open('products.txt', 'r') as f:
+            self.products_template_ids = {int(p.split(' ')[0]): p.split(' ')[2] for p in f.readlines()}
+        return super().__init__(*args, **kwargs)
+
     @task
     def t(self):
         self.client.client.clientpool.close()
@@ -62,9 +71,13 @@ class WebShop(FastHttpUser):
             pass
         sleep(user_speed)
 
+        random_page = randint(1, 100)
+        product['url'] = self.products[random_page]
+        product['id'] = int(self.products_ids[random_page])
+        product['template_id'] = int(self.products_template_ids[random_page])
         with self.client.request(
             "GET",
-            f"/shop/page/{randint(1, 101)}",
+            f"/shop/page/{random_page}",
             headers={
                 "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
                 "accept-encoding": "gzip, deflate, br, zstd",
@@ -79,12 +92,7 @@ class WebShop(FastHttpUser):
             },
             catch_response=True,
         ) as resp:
-            soup = BeautifulSoup(resp.text, 'lxml')
-            links = []
-            for link in soup.select("a[itemprop]"):
-                if 'oe_product_image_link' in link['class']:
-                    links.append(link['href'])
-            product['url'] = choice(links)
+            pass
         sleep(user_speed)
 
         with self.client.request(
@@ -104,9 +112,7 @@ class WebShop(FastHttpUser):
             },
             catch_response=True,
         ) as resp:
-            soup = BeautifulSoup(resp.text, 'lxml')
-            product['id'] = int(soup.select_one("input[name='product_id']")['value'])
-            product['template_id'] = int(soup.select_one("input[name='product_template_id']")['value'])
+            pass
         sleep(user_speed)
 
         for i in range(0, randint(0,6)):
@@ -192,7 +198,6 @@ class WebShop(FastHttpUser):
         ) as resp:
             soup = BeautifulSoup(resp.text, 'lxml')
             order_id = soup.select_one("sup[data-order-id]")["data-order-id"]
-            print(order_id)
             
         sleep(user_speed)
 
@@ -324,8 +329,6 @@ class WebShop(FastHttpUser):
             },
             catch_response=True,
         ) as resp:
-            with open('res.txt', 'wt') as f:
-                f.write(resp.text)
             soup = BeautifulSoup(resp.text, 'lxml')
             access_token = soup.select_one("form[data-access-token]")["data-access-token"]
         sleep(user_speed)
@@ -363,28 +366,6 @@ class WebShop(FastHttpUser):
             },
         ) as resp:
             pass
-        # with self.client.request(
-        #     "POST",
-        #     "/payment/custom/process",
-        #     headers={
-        #         "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-        #         "accept-encoding": "gzip, deflate, br, zstd",
-        #         "cache-control": "max-age=0",
-        #         "content-type": "application/x-www-form-urlencoded",
-        #         "origin": f"{self.host}",
-        #         "priority": "u=0, i",
-        #         "referer": f"{self.host}shop/payment",
-        #         "sec-fetch-dest": "document",
-        #         "sec-fetch-mode": "navigate",
-        #         "sec-fetch-site": "same-origin",
-        #         "sec-fetch-user": "?1",
-        #         "upgrade-insecure-requests": "1",
-        #         "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-        #     },
-        #     # data="reference=S46778",
-        #     catch_response=True,
-        # ) as resp:
-        #     pass
         with self.client.request(
             "GET",
             "/payment/status",
